@@ -1,0 +1,537 @@
+{
+  "name": "Search and lead",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1280,
+        560
+      ],
+      "id": "f4714bdf-7057-4f83-b53b-d1a3ff5080bb",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1LyfQMu3rWl579KZT_QsJxCjiQ3l8GflLUPnSTDO6QW4",
+          "mode": "list",
+          "cachedResultName": "get search queries",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LyfQMu3rWl579KZT_QsJxCjiQ3l8GflLUPnSTDO6QW4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "search",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LyfQMu3rWl579KZT_QsJxCjiQ3l8GflLUPnSTDO6QW4/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -40,
+        -80
+      ],
+      "id": "75523321-3ccb-403d-92a3-d41784417868",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PTSmnQXkzpqUzVPV",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/compass~google-maps-extractor/run-sync-get-dataset-items",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer apify_api_oP6F1AHtqUj7d6S1sxY9PbC10WkQmN3iG5Qd"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"language\": \"en\",\n    \"locationQuery\": \"{{ $json.City }}\",\n    \"maxCrawledPlacesPerSearch\": 15,\n    \"searchStringsArray\": [\n        \"{{ $json[\"Store type\"] }}\"\n    ],\n    \"skipClosedPlaces\": false\n} ",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        160,
+        -80
+      ],
+      "id": "4be33531-d69a-4172-983d-4afccd40c077",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8c622aed-7d31-4e90-961f-16594f0b6fc2",
+              "name": "Cafe",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "391cd866-c05c-454c-ac02-64dea016f38c",
+              "name": "Address",
+              "value": "={{ $json.address }}",
+              "type": "string"
+            },
+            {
+              "id": "bf58d0a6-8d42-46af-b822-511b75dabee2",
+              "name": "Phone",
+              "value": "={{ $json.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "c4b1d101-1475-4a6c-aed0-784897621fe4",
+              "name": "Website",
+              "value": "={{ $json.website }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        320,
+        -80
+      ],
+      "id": "8db6789e-8ea3-4063-b87c-aea8e6a5c9ec",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.filter(item => {\n  const website = item.json.Website;\n  return website !== null && website !== undefined && website !== '';\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        -80
+      ],
+      "id": "82d1e5f2-a72e-445d-932b-fdee8dc3b578",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        160,
+        160
+      ],
+      "id": "096014ec-11eb-46ea-9fe6-7d0bc58a6fe7",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.Website }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        180
+      ],
+      "id": "39adc4ef-0427-4cb2-9585-4f7d525690d6",
+      "name": "Scrape site"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4",
+          "mode": "list",
+          "cachedResultName": "GPT-4"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{$json.data.length > 5000 ? $json.data.slice(0,5000) : $json.data}}"
+            },
+            {
+              "content": "You've been provided with the HTML content of a web page. Your task is to write a two-paragraph abstract summarizing the content of the page.\n\nReturn the result strictly in the following JSON format:\n\n{\n  \"abstract\": \"your abstract goes here\"\n}\n\nGuidelines:\n- The abstract must be comprehensive and equivalent in detail to a published paper’s abstract.\n- Use a clear, objective, and concise tone (similar to academic or technical writing).\n- If the page is empty or contains no meaningful content, return: { \\\"abstract\\\": \\\"no contest\\\" }\n"
+            },
+            {
+              "content": "You are an intelligent website scrape assistant",
+              "role": "system"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        680,
+        -20
+      ],
+      "id": "7575d466-c958-4d7c-a92e-ef1fdd03b549",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "LcoSO1qsL6Settl5",
+          "name": "OpenAi account 6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "message.content"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        -20
+      ],
+      "id": "38035864-767b-47f7-958e-bf634b185455",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "chatgpt-4o-latest",
+          "mode": "list",
+          "cachedResultName": "CHATGPT-4O-LATEST"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "you are an itelligent sales assistant",
+              "role": "system"
+            },
+            {
+              "content": "=You will receive summaries of business web pages.\n\nYour task is to take their summaries and turn them into catchy, personalized openers for a cold email campaign to imply that the rest of the campaign is personalized.\n\nYou'll return your icebreakers in the following JSON format:\n\n(\"icebreaker\": \"Hey (name). Love (shortenedCompany)—noticed you're also into (otherThing). Got something you might dig.\\n\\nI've been diving into your setup and couldn't help but notice how much weight you put on (anotherThing) (at least judging by how you highlight (fourthThing)). Built a lightweight AI automation system that clears grunt work, connects tools, and keeps ops leen. It's dead simple, fast to deploy, and I think it lines up with your focus on (someImpliedBeliefTheyHave).\")\n\nRules:\n\n- write in a spartan/laconic tone of voice.\n\n- Rake sure to use the above formet when constructing your icebreakers. He wrote it this way on purpose.\n\n- Shorten the company name wherever possible (say, \"XYZ\" instead of \"XYZ Agency\"). More examples: \"Love ANS\" Instead of \"Love AMS Professional Services\", \"Love Mayo\" instead of \"Love Mayo Inc.\", etc.\n\n- Do the same with locations. \"San Fran\" instead of \"San Francisco\", \"BC\" instead of \"British Columbia\", etc.\n\n- For your variables, focus on small, non-obvious things to paraphrase. The idea is to make people think you really dove deep into their website, so don't use something obvious. Do not say cookie-cutter stuff like \"Love your website!\" or \"Love your take on marketing!\".\n\nIf the input summary is empty or missing, respond with:\n\n{\"icebreaker\": \"no contest\"}\n"
+            },
+            {
+              "content": "=\nThis page presents Maki Agency, a Madagascar-based digital agency specializing in web outsourcing and subcontracting services. The agency emphasizes its experience and dedicated team capable of handling diverse digital tasks such as web development, design, SEO, content writing, integration, community management, and maintenance. Maki Agency offers both white-label and dedicated resource solutions for clients seeking to externalize parts of their workflow to a specialized offshore partner. The descriptions highlight the agency's proficiency in popular web technologies, frameworks, and CMS platforms (such as HTML, CSS, PHP, WordPress, Laravel, WooCommerce, and Odoo), as well as its ability to execute projects ranging from landing pages, e-commerce platforms, and intranets to detailed graphic design and content creation.\n\nThe site underscores Maki Agency's core values and competitive advantages, such as meticulous attention to detail, experienced professionals, creativity, discretion, and a client-focused approach. It provides detailed breakdowns of service offerings, ranging from graphic materials (logos, flyers, banners) to tailored web development (showcase sites, custom applications, maintenance), SEO strategies (audits, optimizations, search engine submissions), content creation (SEO-optimized articles, product sheets, social media posts), and community management. The agency encourages prospective clients to engage through various contact options, including phone, QR codes, social media links, and live chat, facilitating smooth communication for new or ongoing projects.\n\n"
+            },
+            {
+              "content": "={\n  \"icebreaker\": \"Hey Aina. Love how Maki handles white-label dev work-also impressed by how much emphasis you put on discretion and project control. Got something I think fits.\\n\\nI was digging through Maki's site and noticed how heavily you lean on multi-service delivery (dev, SEO, content, design). I built a lean AI automation system that links ops across services, handles handoffs, and reduces the human Load. It's fast, invisible, and feels very in line with your team's approach to scalable, behind-the-scenes execution.\"\n}\n",
+              "role": "assistant"
+            },
+            {
+              "content": "=Profile: {{ $('Code').item.json.Cafe }}\nWebsite:{{ $('Code').item.json.Website }}\n"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {
+          "temperature": 0.5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        660,
+        260
+      ],
+      "id": "15b3946a-228f-400f-8f06-2d65778416da",
+      "name": "OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "LcoSO1qsL6Settl5",
+          "name": "OpenAi account 6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1LyfQMu3rWl579KZT_QsJxCjiQ3l8GflLUPnSTDO6QW4",
+          "mode": "list",
+          "cachedResultName": "get search queries",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LyfQMu3rWl579KZT_QsJxCjiQ3l8GflLUPnSTDO6QW4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 394528186,
+          "mode": "list",
+          "cachedResultName": "lead",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LyfQMu3rWl579KZT_QsJxCjiQ3l8GflLUPnSTDO6QW4/edit#gid=394528186"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "City": "={{ $('Google Sheets').item.json.City }}",
+            "Store type": "={{ $('Google Sheets').item.json['Store type'] }}",
+            "Title": "={{ $('Loop Over Items').item.json.Cafe }}",
+            "Address": "={{ $('Loop Over Items').item.json.Address }}",
+            "Website": "={{ $('Loop Over Items').item.json.Website }}",
+            "IceBreaker": "={{ $json.message.content.icebreaker }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "City",
+              "displayName": "City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Store type",
+              "displayName": "Store type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Website",
+              "displayName": "Website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "IceBreaker",
+              "displayName": "IceBreaker",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        980,
+        260
+      ],
+      "id": "a1be4aef-9c32-43f5-b285-f5ace1065daa",
+      "name": "Google Sheets1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PTSmnQXkzpqUzVPV",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -200,
+        -80
+      ],
+      "id": "39dfd253-584e-429b-a9b0-991a5f656b7a",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        []
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Scrape site",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape site": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9e47afc3-b914-4900-b0ff-78c7a22f7390",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e3dfc1280a79831d4234af7e6cc08f9877ebfb9b654891eea42f918f0063ec33"
+  },
+  "id": "SIjfwhIEHQALPqnO",
+  "tags": []
+}
