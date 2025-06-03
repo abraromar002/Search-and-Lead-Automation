@@ -1,8 +1,8 @@
 # Project: Search and Lead Automation
-🔍 About the Project
+# 🔍 About the Project
 This project automates the process of lead generation and personalization for cold email outreach using n8n. It integrates multiple tools to extract, summarize, and personalize business information from the web in a structured and scalable way.
 
-🛠️ Key Features
+#🛠️ Key Features
 🔁 Automated Workflow using n8n
 
 📄 Reads business queries (City + Store Type) from Google Sheets
@@ -19,7 +19,7 @@ This project automates the process of lead generation and personalization for co
 
 📊 Saves enriched leads back into Google Sheets
 
-⚙️ Tech Stack
+# ⚙️ Tech Stack
 n8n: Workflow automation
 
 Google Sheets: Data input/output
@@ -30,7 +30,7 @@ OpenAI API (GPT-4): Summarization and personalization
 
 JavaScript (code nodes): Custom filtering and processing
 
-📈 Workflow Summary
+#  📈 Workflow Summary
 Triggered manually or on schedule.
 
 Reads location and business type from Google Sheets.
@@ -47,10 +47,10 @@ Builds a cold-email icebreaker using another GPT prompt.
 
 Appends full lead information back to a new sheet.
 
-📁 Google Sheets Structure
+#📁 Google Sheets Structure
 Input Sheet: Includes City, Store type.
 
-Output Sheet: Includes Title, Address, Website, and generated IceBreaker.
+# Output Sheet: Includes Title, Address, Website, and generated IceBreaker.
 
 
 ![Capturooo](https://github.com/user-attachments/assets/20c325a6-bd48-4213-a95d-b0c5f241ff0c)
